@@ -100,9 +100,10 @@ app.get("/", (req, res) => {
 
   const lines = [];
 
-  lines.push("=========== CCS INDEX ===========");
+  lines.push("=========== CCS Payalugada ===========");
   lines.push("");
-  lines.push("Usage: GET /{id} → download");
+  lines.push("Usage: GET https://ccs6sem.onrender.com/     → get this list");
+  lines.push("Usage: GET https://ccs6sem.onrender.com/{id} → download file");
   lines.push("");
   lines.push("--------------------------------");
   lines.push("");
@@ -157,7 +158,7 @@ app.get("/:id", (req, res) => {
       message: "Unknown id"
     });
   } 
-  
+
 
   const fileName = experiment.filename.includes(".")
     ? experiment.filename
