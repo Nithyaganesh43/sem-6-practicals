@@ -1,0 +1,48 @@
+// AESAlgorithm.java
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+import java.util.Base64;
+
+public class AESAlgorithm {
+
+    public static SecretKey generateKey() throws Exception {
+        KeyGenerator keyGen = KeyGenerator.getInstance("AES");
+        keyGen.init(128);
+        return keyGen.generateKey();
+    }
+
+    public static String encrypt(String plainText, SecretKey key) throws Exception {
+        Cipher cipher = Cipher.getInstance("AES");
+        cipher.init(Cipher.ENCRYPT_MODE, key);
+
+        byte[] encryptedBytes = cipher.doFinal(plainText.getBytes());
+        return Base64.getEncoder().encodeToString(encryptedBytes);
+    }
+
+    public static String decrypt(String cipherText, SecretKey key) throws Exception {
+        Cipher cipher = Cipher.getInstance("AES");
+        cipher.init(Cipher.DECRYPT_MODE, key);
+
+        byte[] decryptedBytes = cipher.doFinal(Base64.getDecoder().decode(cipherText));
+        return new String(decryptedBytes);
+    }
+
+    public static void main(String[] args) {
+        try {
+            SecretKey key = generateKey();
+
+            String text = "HELLOAES";
+            String encryptedText = encrypt(text, key);
+            String decryptedText = decrypt(encryptedText, key);
+
+            System.out.println("Plaintext: " + text);
+            System.out.println("Ciphertext: " + encryptedText);
+            System.out.println("Decrypted Text: " + decryptedText);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+// javac AESAlgorithm.java
+// java AESAlgorithm
