@@ -5,30 +5,36 @@ const path = require("path");
 const app = express();
 const password = "382005";
 let isLocked = false;
+let totalApiCalls = 0;
+
 app.set("trust proxy", 1);
+
+// Keep your original limits
 const rateLimitWindowMs = 60 * 1000;  
 const maxRequests = 1000;
- const ipStore = new Map();
+const ipStore = new Map();
+
+app.use((req, res, next) => {
+  if (req.path !== "/favicon.ico") {
+    totalApiCalls += 1;
+  }
+  next();
+});
 
 app.use((req, res, next) => {
   const ip = req.ip;
   const now = Date.now();
 
   if (!ipStore.has(ip)) {
-    ipStore.set(ip, { count: 1, start: now });
-    return next();
+    ipStore.set(ip, []);
   }
 
-  const data = ipStore.get(ip);
+  let timestamps = ipStore.get(ip);
+  timestamps = timestamps.filter(time => now - time < rateLimitWindowMs);
+  timestamps.push(now);
+  ipStore.set(ip, timestamps);
 
-  if (now - data.start > rateLimitWindowMs) {
-    ipStore.set(ip, { count: 1, start: now });
-    return next();
-  }
-
-  data.count++;
-
-  if (data.count > maxRequests) {
+  if (timestamps.length > maxRequests) {
     return res.status(429).json({
       success: false,
       message: "Too many requests"
@@ -37,14 +43,7 @@ app.use((req, res, next) => {
 
   next();
 });
-setInterval(() => {
-  const now = Date.now();
-  for (const [ip, data] of ipStore.entries()) {
-    if (now - data.start > rateLimitWindowMs) {
-      ipStore.delete(ip);
-    }
-  }
-}, 60 * 1000);
+
 app.get(`/${password}`, (req, res) => {
   isLocked = !isLocked;
   res.type("text/plain").send(isLocked ? "locked" : "unlocked");
@@ -171,6 +170,7 @@ app.get("/", (req, res) => {
   lines.push("--------------------------------");
   lines.push("");
   lines.push(`TOTAL: ${order.filter(id => experiments[id]).length}`);
+  lines.push(`TOTAL API CALLS: ${totalApiCalls}`);
   lines.push("================================");
 
   res.type("text/plain").send(lines.join("\n"));
