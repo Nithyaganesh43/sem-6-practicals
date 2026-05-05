@@ -156,7 +156,8 @@ app.get("/:id", (req, res) => {
       success: false,
       message: "Unknown id"
     });
-  }
+  } 
+  
 
   const fileName = experiment.filename.includes(".")
     ? experiment.filename
