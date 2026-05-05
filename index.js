@@ -1,39 +1,58 @@
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
-const os = require("os");
-const archiver = require("archiver");
 
 const app = express();
-
+const password = "382005";
+let isLocked = false;
+app.set("trust proxy", 1);
 const rateLimitWindowMs = 60 * 1000;  
-const maxRequests = 100;
-const ipStore = new Map();
+const maxRequests = 1000;
+ const ipStore = new Map();
 
 app.use((req, res, next) => {
-  const istTime = new Date().toLocaleString("en-IN", {
-  timeZone: "Asia/Kolkata"
-});
-console.log(`${istTime} ip=${req.ip}`);
   const ip = req.ip;
   const now = Date.now();
 
   if (!ipStore.has(ip)) {
-    ipStore.set(ip, []);
+    ipStore.set(ip, { count: 1, start: now });
+    return next();
   }
 
-  let timestamps = ipStore.get(ip);
+  const data = ipStore.get(ip);
 
-  timestamps = timestamps.filter(time => now - time < rateLimitWindowMs);
+  if (now - data.start > rateLimitWindowMs) {
+    ipStore.set(ip, { count: 1, start: now });
+    return next();
+  }
 
-  timestamps.push(now);
-  ipStore.set(ip, timestamps);
+  data.count++;
 
-  if (timestamps.length > maxRequests) {
+  if (data.count > maxRequests) {
     return res.status(429).json({
       success: false,
-      message: "Too many requests. Try again later."
+      message: "Too many requests"
     });
+  }
+
+  next();
+});
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, data] of ipStore.entries()) {
+    if (now - data.start > rateLimitWindowMs) {
+      ipStore.delete(ip);
+    }
+  }
+}, 60 * 1000);
+app.get(`/${password}`, (req, res) => {
+  isLocked = !isLocked;
+  res.type("text/plain").send(isLocked ? "locked" : "unlocked");
+});
+
+app.use((req, res, next) => {
+  if (isLocked) {
+    return res.status(423).type("text/plain").send("locked");
   }
 
   next();
