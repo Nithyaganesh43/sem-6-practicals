@@ -105,8 +105,8 @@ app.get("/", (req, res) => {
   lines.push("Step 1: Open terminal (Command Prompt or PowerShell)");
   lines.push("Usage: curl https://ccs6sem.onrender.com/     → get this list");
   lines.push("");
-  lines.push("Step 2: To download a file, use:");
-  lines.push("the given command in the 'terminal cmd' column for the desired experiment");
+  lines.push("Step 2: To download a file,");
+  lines.push("use the given command in the 'terminal cmd' column for the desired experiment");
   lines.push("");
   lines.push("");
   lines.push("--------------------------------");
