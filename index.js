@@ -135,7 +135,7 @@ app.get("/", (req, res) => {
       : `${exp.filename}.java`;
 
     lines.push(
-      `${id.padEnd(2)} | ${paddedTitle} | curl.exe -o ${fileName} http://localhost:3000/${id}`
+      `${id.padEnd(2)} | ${paddedTitle} | curl.exe -o ${fileName} https://ccs6sem.onrender.com/${id}`
     );
   });
 
